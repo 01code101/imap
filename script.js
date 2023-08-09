@@ -1,11 +1,7 @@
 "use strict";
 
-// ////////////////////////////////////
-// learn _moveToPopup method, event delegation
-// ///////////////////////////////////
 
-
-
+// Selection part,
 const form = document.querySelector(".form");
 const containerWorkouts = document.querySelector(".workouts");
 const inputType = document.querySelector(".form__input--type");
@@ -16,6 +12,7 @@ const inputElevation = document.querySelector(".form__input--elevation");
 
 // any global variable in any script will be available in all scripts. TIP!!
 
+// parent class for all type of workouts.
 class Workourt {
   date = new Date();
   id = (Date.now() + "").slice(-10); //manual id, but usually we use a library for it.
@@ -79,18 +76,22 @@ class Cycling extends Workourt {
   }
 }
 
-// const run1 = new Running([39, -12], 5.2, 24, 178)
-// const cycle1 = new Cycling([39, -12], 5.2, 95, 178)
-// console.log(run1);
-// console.log(cycle1);
 
-// ////////////////////////
-// APLICATION ARCHITECTURE
+// Main class of the program
 class App {
-  #map; //private property
+  ////// private property //////
+
+  // it is used to storing the actual map
+  #map; 
+
   #mapEvent;
   #workout = [];
+
+  // it set the zoom value of the map at its initial time
   #mapZoomLevel = 14;
+
+  ////// end of the property field /////
+
 
   constructor() {
     // Get user Position
@@ -105,10 +106,9 @@ class App {
 
     // Event Delegation
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
-
-
   }
 
+  // gets the location of the user
   _getPosition() {
     if (navigator.geolocation)
       // first callback success, second one is error
@@ -119,9 +119,9 @@ class App {
           alert("Could not get your position");
         }
       );
-      document
   }
 
+  // create a map using leaflet lib based on user's locations.
   _loadMap(position) {
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
@@ -129,6 +129,7 @@ class App {
     const coords = [latitude, longitude];
 
     // L is nameSpace of leaflet library
+    // it was added to the app in html file
     this.#map = L.map("map").setView(coords, this.#mapZoomLevel);
 
     L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
@@ -140,6 +141,7 @@ class App {
     this.#map.on("click", this._showForm.bind(this));
 
     // map exists here,
+    // if there was any workout in the localStorage, this code will shows it to the map
     this.#workout.forEach(work =>{
       this._renderWorkoutMarker(work);
     });
@@ -159,18 +161,23 @@ class App {
     }, 1000)
   }
 
+  // this method shows the form to the user
   _showForm(mapE) {
+    // mapE is the details of the click event 
     this.#mapEvent = mapE;
     form.classList.remove("hidden");
     inputDistance.focus();
   }
 
+  // it appear and disppear the proper input for the choosen type.
   _toggleElevationField() {
     inputElevation.closest(".form__row").classList.toggle("form__row--hidden");
     inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
   }
 
+  // this function make a new wrokout based on user inputs.
   _newWorkout(e) {
+    // these two functionsl checking the conditions of input first.
     const validInputs = (...inputs) => inputs.every(inp => Number.isFinite(inp));
     const allPositive = (...inputs) => inputs.every(inp => inp > 0);
 
@@ -230,6 +237,7 @@ class App {
     this._setLocalStorage();
   }
 
+  // this function makes new popUp in the map based on workout data.
   _renderWorkoutMarker(workout){
     L.marker(workout.coords)
       .addTo(this.#map)
@@ -239,6 +247,7 @@ class App {
           minWidth: 100,
           autoClose: false,
           closeOnClick: false,
+          // this className is declared in CSS file
           className: `${workout.type}-popup`,
         })
       )
@@ -246,6 +255,7 @@ class App {
       .openPopup();
   }
 
+  // this method manipulate the DOM, and disply workout in the UI
   _renderWorkout(workout){
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
@@ -292,15 +302,15 @@ class App {
       </li>
       `;
 
+    // this code adds the builded html content to the DOM. 
     form.insertAdjacentHTML('afterend', html); // after form element in document.!!
   }
 
 
 
-  // important to learn****
+  // this important func set the map location to selected workout which was clicked.
   _moveToPopup(e){
     // Event Delegation
-    // learn this carefully ******
     const workoutEl = e.target.closest('.workout');
 
     if(!workoutEl) return;
@@ -319,11 +329,13 @@ class App {
     // workout.click();
   }
 
+  // add all workout to the localStorage as JASON.
   _setLocalStorage(){
     // browser api //
     localStorage.setItem('workouts', JSON.stringify(this.#workout));
   }
 
+  // this method get all stored data in localStorage!
   _getLocalStorage(){
     const data = JSON.parse(localStorage.getItem('workouts'));
 

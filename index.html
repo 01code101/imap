@@ -10,6 +10,8 @@
       http-equiv="X-UA-Compatible"
       content="ie=edge"
     />
+
+    <!-- favicon -->
     <link
       rel="shortcut icon"
       type="image/png"
@@ -58,17 +60,23 @@
         class="logo"
       />
 
+      <!-- workouts selected in JS -->
       <ul class="workouts">
+
+        <!-- input form  -->
+        <!-- form selected in JS -->
         <form class="form hidden">
           <div class="form__row">
             <label class="form__label">
               <span lang="en">Type</span>
               <span lang="fa">نوع</span>
             </label>
+            
+            <!-- form__input--type selected in JS -->
             <select class="form__input form__input--type">
               <option value="running">
-              <!-- <span lang="en">Running</span> -->
-              <span lang="fa">دویدن</span>
+                <!-- <span lang="en">Running</span> -->
+                <span lang="fa">دویدن</span>
               </option>
               <option value="cycling">
                 <!-- <span lang="en">Cycling</span> -->
@@ -81,6 +89,8 @@
               <span lang="en">Distance</span>
               <span lang="fa">فاصله</span>
             </label>
+
+            <!-- form__input--distance selected in JS -->
             <input
               class="form__input form__input--distance"
               placeholder="km"
@@ -91,26 +101,36 @@
               <span lang="en">Duration</span>
               <span lang="fa">مدت</span>
             </label>
+
+            <!-- form__input--duration selected in JS -->
             <input
               class="form__input form__input--duration"
               placeholder="min"
             />
           </div>
+
+          <!-- this input is for  running-->
           <div class="form__row">
             <label class="form__label">
               <span lang="en">Cadence</span>
               <span lang="fa">ریتم</span>
             </label>
+
+            <!-- form__input--cadence selected in JS -->
             <input
               class="form__input form__input--cadence"
               placeholder="step/min"
             />
           </div>
+
+          <!-- this input is for  cycling-->
           <div class="form__row form__row--hidden">
             <label class="form__label">
               <span lang="en">Elev Gain</span>
               <span lang="fa">ارتفاع</span>
             </label>
+
+            <!-- form__input--elevation selected in JS -->
             <input
               class="form__input form__input--elevation"
               placeholder="meters"
@@ -119,6 +139,7 @@
           <button class="form__btn">OK</button>
         </form>
 
+        <!-- these elements are added by JS and add to the DOM******** -->
         <!-- <li class="workout workout--running" data-id="1234567890">
           <h2 class="workout__title">Running on April 14</h2>
           <div class="workout__details">
@@ -168,19 +189,18 @@
         </li> -->
       </ul>
 
-      <p class="copyright">
-        
-        <span lang="en">&copy; Copyright by</span>
-          <span lang="fa">&copy; کپی رایت توسط</span>
+      <!-- develop part -->
+      <p class="develop">
+        <span lang="en">Developed by </span>
+        <span lang="fa">ساخته شده توسط</span>
         <a
-          class="twitter-link"
+          class="linkedin-link"
           target="_blank"
-          href="https://twitter.com/jonasschmedtman"
-          >
+          href="https://www.linkedin.com/in/mostafa-saleh-18917a27a/"
+        >
           <span lang="en">Mostafa Saleh</span>
           <span lang="fa ">مصطفی صالح</span>
-          </a
-        >
+        </a>
       </p>
     </div>
 
