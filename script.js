@@ -13,7 +13,11 @@ const deletionWindow = document.querySelector(".delete-window");
 const deletionWindowBtnY = document.querySelector(".btn-delete-y");
 const deletionWindowBtnN = document.querySelector(".btn-delete-n");
 let itemID = null; //this variable sotres id of elements.
-let popup = null; //this stores all markers in the map
+let popup = null; //this stores all markers in the map.
+
+const tooltipDelWindowEl = document.querySelector('.tooltip-del-all');
+const iconDeleteAllEl = document.querySelector('.delete-icon-all');
+let delAllWorkouts  = false; //control delelte all logic
 
 // any global variable in any script will be available in all scripts. TIP!!
 
@@ -116,11 +120,41 @@ class App {
       deletionWindow.classList.add('hidden');
   });
     deletionWindowBtnY.addEventListener('click', ()=>{ 
-    this._deleteWorkout(itemID);
-    this._delWorkout_UI_Map(itemID);
-    this._setLocalStorage();
+      // delete one workout
+      if(!delAllWorkouts){
+        this._deleteWorkout(itemID);
+        this._delWorkout_UI_Map(itemID);
+      }
+      // delete all workouts
+      else{
+        console.log('before: '+this.#workout);
+        this.#workout.forEach((w, i) =>{
+          let id = w.id;
+          this._delWorkout_UI_Map(id);
+          console.log('item: '+w);
+        })
+        this.#workout = []
+      }
+      console.log('after: '+this.#workout);
+      this._setLocalStorage();
+
     deletionWindow.classList.add('hidden');
     });
+
+    // hover control for inconDelAll
+    iconDeleteAllEl.addEventListener('mouseenter', () =>{
+      if(tooltipDelWindowEl.classList.contains('hidden'))
+        tooltipDelWindowEl.classList.remove('hidden');
+      setTimeout(() => {
+        tooltipDelWindowEl.classList.add('hidden');
+      }, 2000);
+    })
+    // click control for inconDelAll
+    iconDeleteAllEl.addEventListener('click', () => {
+      deletionWindow.classList.remove('hidden');
+      deletionWindow.querySelector('.delete-text').textContent = 'Are you sure you want to delete all the workouts!';
+      delAllWorkouts = true;
+    })
   }
 
   // gets the location of the user
@@ -375,6 +409,9 @@ class App {
     const workoutEl = e.target.closest(".workout");
     const deleteIcon = e.target.closest(".delete-icon");
     const deleteIconMap = e.target.closest(".delete-icon-map");
+
+    // adjust the proper tect for the deletionWindow
+    deletionWindow.querySelector('.delete-text').textContent = 'You want to delete the selected workout?';
 
     //e from map
     if (deleteIconMap) {
