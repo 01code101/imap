@@ -109,7 +109,8 @@ a:visited {
   transition: all 0.2s;
 }
 
-.delete-icon:hover{
+.delete-icon:hover,
+.delete-icon-map:hover{
   stroke: var(--color-brand--3);
 }
 
@@ -306,4 +307,10 @@ body span[lang="en"]{
 
 .hidden{
   display: none;
+}
+
+.delete-icon-map{
+  width: 20px;
+  height: 20px;
+
 }

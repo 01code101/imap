@@ -1,6 +1,5 @@
 "use strict";
 
-
 // Selection part,
 const form = document.querySelector(".form");
 const containerWorkouts = document.querySelector(".workouts");
@@ -9,6 +8,7 @@ const inputDistance = document.querySelector(".form__input--distance");
 const inputDuration = document.querySelector(".form__input--duration");
 const inputCadence = document.querySelector(".form__input--cadence");
 const inputElevation = document.querySelector(".form__input--elevation");
+let popup = null; //this stores all markers in the map
 
 // any global variable in any script will be available in all scripts. TIP!!
 
@@ -26,7 +26,7 @@ class Workourt {
     this.duration = duration; //in min
   }
 
-  _setDescription(){
+  _setDescription() {
     // prettier-ignore
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
     'August', 'September', 'October', 'November', 'December'];
@@ -35,13 +35,13 @@ class Workourt {
     ${months[this.date.getMonth()]} ${this.date.getDate()}`;
   }
 
-  click(){
+  click() {
     this.clicks++;
   }
 }
 
 class Running extends Workourt {
-  type = 'running';
+  type = "running";
 
   constructor(coords, distance, duration, cadence) {
     super(coords, distance, duration);
@@ -49,10 +49,10 @@ class Running extends Workourt {
     this.calcPace();
     this._setDescription();
   }
-  
+
   calcPace() {
     //pace = min/km
-    
+
     // declaring a new property (pace)
     this.pace = this.duration / this.distance;
     return this.pace;
@@ -60,7 +60,7 @@ class Running extends Workourt {
 }
 
 class Cycling extends Workourt {
-  type = 'cycling';
+  type = "cycling";
 
   constructor(coords, distance, duration, elevationGain) {
     super(coords, distance, duration);
@@ -76,13 +76,12 @@ class Cycling extends Workourt {
   }
 }
 
-
 // Main class of the program
 class App {
   ////// private property //////
 
   // it is used to storing the actual map
-  #map; 
+  #map;
 
   #mapEvent;
   #workout = [];
@@ -92,20 +91,19 @@ class App {
 
   ////// end of the property field /////
 
-
   constructor() {
     // Get user Position
     this._getPosition();
 
     // Get data from local storage
-    this._getLocalStorage()
+    this._getLocalStorage();
 
     // pressing enter key on keyboard
     form.addEventListener("submit", this._newWorkout.bind(this));
     inputType.addEventListener("change", this._toggleElevationField);
 
     // Event Delegation
-    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
+    containerWorkouts.addEventListener("click", this._cEventOnWorkoutUI.bind(this));
   }
 
   // gets the location of the user
@@ -142,28 +140,28 @@ class App {
 
     // map exists here,
     // if there was any workout in the localStorage, this code will shows it to the map
-    this.#workout.forEach(work =>{
+    this.#workout.forEach((work) => {
       this._renderWorkoutMarker(work);
     });
   }
 
-  _hideForm(){
+  _hideForm() {
     inputDistance.value =
       inputDuration.value =
       inputCadence.value =
       inputElevation.value =
         "";
 
-    form.style.display = 'none';
+    form.style.display = "none";
     form.classList.add("hidden");
-    setTimeout(() =>{
-      form.style.display = 'grid';
-    }, 1000)
+    setTimeout(() => {
+      form.style.display = "grid";
+    }, 1000);
   }
 
   // this method shows the form to the user
   _showForm(mapE) {
-    // mapE is the details of the click event 
+    // mapE is the details of the click event
     this.#mapEvent = mapE;
     form.classList.remove("hidden");
     inputDistance.focus();
@@ -178,8 +176,9 @@ class App {
   // this function make a new wrokout based on user inputs.
   _newWorkout(e) {
     // these two functionsl checking the conditions of input first.
-    const validInputs = (...inputs) => inputs.every(inp => Number.isFinite(inp));
-    const allPositive = (...inputs) => inputs.every(inp => inp > 0);
+    const validInputs = (...inputs) =>
+      inputs.every((inp) => Number.isFinite(inp));
+    const allPositive = (...inputs) => inputs.every((inp) => inp > 0);
 
     e.preventDefault();
 
@@ -203,7 +202,7 @@ class App {
       )
         return alert("Inputs have to be positive numbers!"); //gaurd caluse
 
-        workout = new Running([lat, lng], distance, duration, cadence);
+      workout = new Running([lat, lng], distance, duration, cadence);
     }
 
     // If workout cycling, create cyccling object
@@ -215,20 +214,19 @@ class App {
         !allPositive(distance, duration)
       )
         return alert("Inputs have to be positive numbers!"); //gaurd caluse
-        workout = new Cycling([lat, lng], distance, duration, elevation);
-      }
+      workout = new Cycling([lat, lng], distance, duration, elevation);
+    }
 
     // Add new object to workout array
     this.#workout.push(workout);
 
-
     // Render workout on map as marker
     // display marker
     // in here this is the class itself.
-    this._renderWorkoutMarker(workout)
+    this._renderWorkoutMarker(workout);
 
     // Render workout on list
-      this._renderWorkout(workout);
+    this._renderWorkout(workout);
 
     // Hide form + clear input fields
     this._hideForm();
@@ -238,7 +236,7 @@ class App {
   }
 
   // this function makes new popUp in the map based on workout data.
-  _renderWorkoutMarker(workout){
+  _renderWorkoutMarker(workout) {
     L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
@@ -251,12 +249,27 @@ class App {
           className: `${workout.type}-popup`,
         })
       )
-      .setPopupContent(`${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'} ${workout.description}`)
+      .setPopupContent(
+        `${workout.type === "running" ? "🏃‍♂️" : "🚴‍♀️"} ${workout.description}
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="delete-icon-map" data-id="${
+        workout.id
+      }">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+      `
+      )
       .openPopup();
+
+    // adding click event to last popup which is made recently!!
+    popup = document.querySelectorAll(".leaflet-popup-content");
+    // console.log(popup[popup.length - 1]);
+    popup[popup.length - 1].addEventListener(
+      "click",
+      this._cEventOnWorkoutUI.bind(this)
+    );
   }
 
   // this method manipulate the DOM, and disply workout in the UI
-  _renderWorkout(workout){
+  _renderWorkout(workout) {
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
     <h2 class="workout__title">
@@ -264,7 +277,9 @@ class App {
     <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
     </svg>${workout.description}</h2>
       <div class="workout__details">
-        <span class="workout__icon">${workout.type === 'running' ? '🏃‍♂️' : '🚴‍♀️'}</span>
+        <span class="workout__icon">${
+          workout.type === "running" ? "🏃‍♂️" : "🚴‍♀️"
+        }</span>
         <span class="workout__value">${workout.distance}</span>
         <span class="workout__unit">km</span>
       </div>
@@ -273,9 +288,9 @@ class App {
         <span class="workout__value">${workout.duration}</span>
         <span class="workout__unit">min</span>
     </div>
-    `
-    if(workout.type === 'running')
-      html +=`
+    `;
+    if (workout.type === "running")
+      html += `
       <div class="workout__details">
         <span class="workout__icon">⚡️</span>
         <span class="workout__value">${workout.pace.toFixed(1)}</span>
@@ -289,7 +304,7 @@ class App {
         </li>
       `;
 
-    if(workout.type === 'cycling')
+    if (workout.type === "cycling")
       html += `
       </div>
         <div class="workout__details">
@@ -305,20 +320,25 @@ class App {
       </li>
       `;
 
-    // this code adds the builded html content to the DOM. 
-    form.insertAdjacentHTML('afterend', html); // after form element in document.!!
+    // this code adds the builded html content to the DOM.
+    form.insertAdjacentHTML("afterend", html); // after form element in document.!!
   }
 
-
+  // this func delete workout from app and required an id
+  _deleteWorkout(id) {
+    this.#workout.forEach((w, i) => {
+      if (w.id === id) {
+        // splice mutate the original array
+        this.#workout.splice(i, 1);
+      }
+    });
+  }
 
   // this important func set the map location to selected workout which was clicked.
-  _moveToPopup(e){
-    // Event Delegation
-    const workoutEl = e.target.closest('.workout');
-
-    if(!workoutEl) return;
-
-    const workout = this.#workout.find(work => work.id === workoutEl.dataset.id);
+  _moveToPopup(workoutEl) {
+    const workout = this.#workout.find(
+      (work) => work.id === workoutEl.dataset.id
+    );
 
     this.#map.setView(workout.coords, this.#mapZoomLevel, {
       animate: true,
@@ -332,20 +352,69 @@ class App {
     // workout.click();
   }
 
+  // this func handles various click events on Workout container
+  _cEventOnWorkoutUI(e) {
+    // Event Delegation
+    const workoutEl = e.target.closest(".workout");
+    const deleteIcon = e.target.closest(".delete-icon");
+    const deleteIconMap = e.target.closest(".delete-icon-map");
+
+    // from map
+    if (deleteIconMap) {
+      this._deleteWorkout(deleteIconMap.dataset.id);
+      this._delWorkout_UI_Map(deleteIconMap.dataset.id);
+      this._setLocalStorage();
+    }
+
+    // from UI Form
+    if (!workoutEl) return;
+
+    if (deleteIcon) {
+      this._deleteWorkout(workoutEl.dataset.id);
+      this._delWorkout_UI_Map(workoutEl.dataset.id);
+      this._setLocalStorage();
+    } else this._moveToPopup(workoutEl);
+  }
+
+// this big func does 2 proccess, with id
+// 1. delete the workout from UI from
+// 2. delete the workout from map
+  _delWorkout_UI_Map(id) {
+
+    // deleting from UI
+    for (let child of containerWorkouts.children) {
+      if (child.classList.contains("workout") && child.dataset.id === id) {
+        child.remove();
+      }
+    }
+
+    // deleting from map
+    const popupContainer = document.querySelector(".leaflet-popup-pane");
+    const popupMarkerContainer = document.querySelector(".leaflet-marker-pane");
+    let i = 0;
+    for (let child of popupContainer.children) {
+      if (child.querySelector("svg").dataset.id === id) {
+        child.remove();
+        popupMarkerContainer.children[i].remove();
+      }
+      i++;
+    }
+  }
+
   // add all workout to the localStorage as JASON.
-  _setLocalStorage(){
+  _setLocalStorage() {
     // browser api //
-    localStorage.setItem('workouts', JSON.stringify(this.#workout));
+    localStorage.setItem("workouts", JSON.stringify(this.#workout));
   }
 
   // this method get all stored data in localStorage!
-  _getLocalStorage(){
-    const data = JSON.parse(localStorage.getItem('workouts'));
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem("workouts"));
 
-    if(!data) return;
+    if (!data) return;
 
     this.#workout = data;
-    this.#workout.forEach(work =>{
+    this.#workout.forEach((work) => {
       this._renderWorkout(work);
 
       // map doesn't exist here,
@@ -353,8 +422,8 @@ class App {
     });
   }
 
-  reset(){
-    localStorage.removeItem('workouts');
+  reset() {
+    localStorage.removeItem("workouts");
     // a big object in js
     location.reload();
   }
