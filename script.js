@@ -8,6 +8,11 @@ const inputDistance = document.querySelector(".form__input--distance");
 const inputDuration = document.querySelector(".form__input--duration");
 const inputCadence = document.querySelector(".form__input--cadence");
 const inputElevation = document.querySelector(".form__input--elevation");
+
+const deletionWindow = document.querySelector(".delete-window");
+const deletionWindowBtnY = document.querySelector(".btn-delete-y");
+const deletionWindowBtnN = document.querySelector(".btn-delete-n");
+let itemID = null; //this variable sotres id of elements.
 let popup = null; //this stores all markers in the map
 
 // any global variable in any script will be available in all scripts. TIP!!
@@ -104,6 +109,18 @@ class App {
 
     // Event Delegation
     containerWorkouts.addEventListener("click", this._cEventOnWorkoutUI.bind(this));
+
+
+    // add click event to deletionWidow
+    deletionWindowBtnN.addEventListener('click', ()=>{
+      deletionWindow.classList.add('hidden');
+  });
+    deletionWindowBtnY.addEventListener('click', ()=>{ 
+    this._deleteWorkout(itemID);
+    this._delWorkout_UI_Map(itemID);
+    this._setLocalStorage();
+    deletionWindow.classList.add('hidden');
+    });
   }
 
   // gets the location of the user
@@ -352,28 +369,52 @@ class App {
     // workout.click();
   }
 
-  // this func handles various click events on Workout container
+  // this func handles various click events on Workouts container
   _cEventOnWorkoutUI(e) {
     // Event Delegation
     const workoutEl = e.target.closest(".workout");
     const deleteIcon = e.target.closest(".delete-icon");
     const deleteIconMap = e.target.closest(".delete-icon-map");
 
-    // from map
+    //e from map
     if (deleteIconMap) {
-      this._deleteWorkout(deleteIconMap.dataset.id);
-      this._delWorkout_UI_Map(deleteIconMap.dataset.id);
-      this._setLocalStorage();
+      itemID = deleteIconMap.dataset.id;
+      console.log('yes');
+      deletionWindow.classList.remove('hidden');
+      this._boldSelectedWorkout(itemID)
+      
+      setTimeout(() => {
+        deletionWindow.classList.add('hidden');
+      }, 3500);
     }
 
-    // from UI Form
+    //e from UI Form
     if (!workoutEl) return;
 
     if (deleteIcon) {
-      this._deleteWorkout(workoutEl.dataset.id);
-      this._delWorkout_UI_Map(workoutEl.dataset.id);
-      this._setLocalStorage();
-    } else this._moveToPopup(workoutEl);
+      itemID = workoutEl.dataset.id;
+      deletionWindow.classList.remove('hidden');
+      this._boldSelectedWorkout(itemID)
+      
+      setTimeout(() => {
+        deletionWindow.classList.add('hidden');
+      }, 3500);
+
+    } else
+    this._moveToPopup(workoutEl);
+  }
+
+  //this func pointouts selected workout
+  _boldSelectedWorkout(id){
+    for (let child of containerWorkouts.children) {
+      if (child.classList.contains("workout") && child.dataset.id === id) {
+        console.log();
+        child.style = 'border-bottom: 6px solid var(--color-brand--3);';
+        setTimeout(() => {
+          child.style = 'border-bottom: none;';
+        }, 3500);
+      }
+    }
   }
 
 // this big func does 2 proccess, with id
@@ -391,11 +432,13 @@ class App {
     // deleting from map
     const popupContainer = document.querySelector(".leaflet-popup-pane");
     const popupMarkerContainer = document.querySelector(".leaflet-marker-pane");
+    const popupMarkerShadowContainer = document.querySelector(".leaflet-shadow-pane");
     let i = 0;
     for (let child of popupContainer.children) {
       if (child.querySelector("svg").dataset.id === id) {
         child.remove();
         popupMarkerContainer.children[i].remove();
+        popupMarkerShadowContainer.children[i].remove();
       }
       i++;
     }

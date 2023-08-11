@@ -63,6 +63,14 @@
       <!-- workouts selected in JS -->
       <ul class="workouts">
 
+        <div class="delete-window hidden"> 
+          <p class="delete-text">You want to delete the selected workout?</p>
+          <div>
+            <button class="btn-delete btn-delete-y">Yes</button>
+            <button class="btn-delete btn-delete-n">No</button>
+          </div>
+        </div>
+
         <!-- input form  -->
         <!-- form selected in JS -->
         <form class="form hidden">
@@ -139,6 +147,8 @@
           <button class="form__btn">OK</button>
         </form>
 
+        
+
         <!-- these elements are added by JS and add to the DOM******** -->
         <!-- <li class="workout workout--running" data-id="1234567890">
           <h2 class="workout__title">Running on April 14</h2>
@@ -204,13 +214,7 @@
       </p>
     </div>
 
-    <div class="delete-window hidden"> 
-      <p class="delete-text">You want to delete this workout?</p>
-      <div>
-        <button class="btn-delete btn-delete-y">Yes</button>
-        <button class="btn-delete btn-delete-n">No</button>
-      </div>
-    </div>
+    
 
     <!-- selected by map library(leaflet)  -->
     <div id="map"></div>

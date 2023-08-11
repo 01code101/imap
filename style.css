@@ -264,9 +264,7 @@ body span[lang="en"]{
 }
 
 .delete-window{
-  position: absolute;
-
-  width: 350px;
+  width: 100%;
   height: auto;
 
   padding: 30px 30px;
@@ -275,11 +273,11 @@ body span[lang="en"]{
   border-radius: 10px;
   border: 2px solid var(--color-brand--3);
 
-  margin: 40vh 50vh;
+  margin-bottom: 2rem;
 }
 
 .delete-text{
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   margin-bottom: 20px;
 }
 
@@ -312,5 +310,4 @@ body span[lang="en"]{
 .delete-icon-map{
   width: 20px;
   height: 20px;
-
 }
