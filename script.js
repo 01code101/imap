@@ -159,17 +159,106 @@ class App {
       delAllWorkouts = true;
     });
 
+    // sort icon
     sortIcon.addEventListener('mouseenter', () =>{
         sortList.classList.remove('hidden');
         setTimeout(() => {
           sortList.classList.add('hidden');
         }, 5000);
       })
+      // sort list
     sortList.addEventListener('mouseleave', () =>{
       sortList.classList.add('hidden');
       })
+
+      // this add click e to the sort list ,,
+    sortList.addEventListener('click',(e)=>{
+      const lableEL = e.target //return the child which has been click.
+
+      const workoutCopyConst = JSON.parse(JSON.stringify(this.#workout)); // a copy of the original workouts
+      let workoutCopy = JSON.parse(JSON.stringify(this.#workout)); // a copy of the original workouts
+      let sortData = []; 
+      let sortDataId = [];
+      let sortWorkouts = []; //this variable keeps all workouts objects based on the sort type.
+      let sortType;
+
+      // console.log(workoutCopy);
+
+      function sort(){
+        console.log(sortType);
+        workoutCopy.forEach((w) => {
+          sortType === 'distance' ? sortData.push(w.distance) : sortData.push(w.duration)
+        })
+
+        // distance of workouts are sorted by this command
+        sortData.sort((a, b)=> a-b)
+
+        // id of each sorted distance will extracts and stores
+        sortData.forEach((s) => {
+          workoutCopy.forEach((w, i )=>{
+            if(s === (sortType === 'distance' ? w.distance : w.duration)){
+              sortDataId.push(w.id);
+              workoutCopy.splice(i, 1);
+              return
+            }
+            
+          })
+        })
+        workoutCopy = workoutCopyConst;
+
+        // sorted workouts are got here
+        sortDataId.forEach((i) => {
+          workoutCopy.forEach((w) => {
+            if(i === String(w.id))
+            {
+              sortWorkouts.push(w)
+            }
+          })
+        });
+        return sortWorkouts
+      }
+
+      if(lableEL.className === 'dis-lable'){
+        sortType = 'distance'
+        const sortedWorkouts = sort()
+        
+        // UI will clear
+        this._delAllUIWorkout();
+
+        // sorted workouts will display
+        sortedWorkouts.forEach((w)=>{
+          this._renderWorkout(w)
+        })
+
+      }
+      
+      else if((lableEL.className === 'dur-lable')){
+        sortType = 'duration'
+        const sortedWorkouts = sort()
+        
+        // UI will clear
+        this._delAllUIWorkout();
+
+        // sorted workouts will display
+        sortedWorkouts.forEach((w)=>{
+          this._renderWorkout(w)
+        })
+      }
+
+      else if(lableEL.className === 'def-lable'){
+        // UI will clear
+        this._delAllUIWorkout();
+
+        // sorted workouts will display
+        this.#workout.forEach((w)=>{
+          this._renderWorkout(w)
+        })
+      }
+    });
   }
 
+  // //////////////////////////////
+  // //////////////////////////////
   // gets the location of the user
   _getPosition() {
     if (navigator.geolocation)
@@ -497,6 +586,27 @@ class App {
       }
       i++;
     }
+  }
+
+  _workoutExist(){
+    for (let child of containerWorkouts.children) {
+        if (child.classList.contains("workout")) {
+          return true
+        }
+      }
+  }
+
+  _delAllUIWorkout(){
+    // deleting from UI
+    let i=true;
+    while(i)
+    {for (let child of containerWorkouts.children) {
+      if (child.classList.contains("workout")) {
+        child.remove();
+      }}
+      i = this._workoutExist()
+    }
+    
   }
 
   // add all workout to the localStorage as JASON.
