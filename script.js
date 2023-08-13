@@ -22,6 +22,8 @@ let delAllWorkouts  = false; //control delelte all logic
 const sortIcon = document.querySelector(".sort-icon");
 const sortList = document.querySelector(".sort-list");
 
+let formType = ''; //new, update.
+
 // any global variable in any script will be available in all scripts. TIP!!
 
 // parent class for all type of workouts.
@@ -77,11 +79,11 @@ class Cycling extends Workourt {
   constructor(coords, distance, duration, elevationGain) {
     super(coords, distance, duration);
     this.elevationGain = elevationGain;
-    this.clacSpeed();
+    this.calcSpeed();
     this._setDescription();
   }
 
-  clacSpeed() {
+  calcSpeed() {
     //  km/h
     this.speed = this.distance / (this.duration / 60);
     return this.speed;
@@ -111,7 +113,7 @@ class App {
     this._getLocalStorage();
 
     // pressing enter key on keyboard
-    form.addEventListener("submit", this._newWorkout.bind(this));
+    form.addEventListener("submit", this._controlformSubmit.bind(this));
     inputType.addEventListener("change", this._toggleElevationField);
 
     // Event Delegation
@@ -171,7 +173,8 @@ class App {
       sortList.classList.add('hidden');
       })
 
-      // this add click e to the sort list ,,
+      // this add click e to the sort list ,
+      //and insert whole sorting logic to the program.
     sortList.addEventListener('click',(e)=>{
       const lableEL = e.target //return the child which has been click.
 
@@ -231,7 +234,7 @@ class App {
         })
 
       }
-      
+
       else if((lableEL.className === 'dur-lable')){
         sortType = 'duration'
         const sortedWorkouts = sort()
@@ -289,10 +292,16 @@ class App {
     }).addTo(this.#map);
 
     // Handling clicks on map
-    this.#map.on("click", this._showForm.bind(this));
+    this.#map.on("click",(e) =>{
+      inputType.removeAttribute('disabled','');
+      formType = 'new';
+      this._showForm(e);
+    })
 
     // map exists here,
     // if there was any workout in the localStorage, this code will shows it to the map
+    console.log(' render');
+    console.log(this.#workout);
     this.#workout.forEach((work) => {
       this._renderWorkoutMarker(work);
     });
@@ -314,8 +323,10 @@ class App {
 
   // this method shows the form to the user
   _showForm(mapE) {
-    // mapE is the details of the click event
-    this.#mapEvent = mapE;
+    if(formType === 'new'){
+      // mapE is the details of the click event
+      this.#mapEvent = mapE;
+    }
     form.classList.remove("hidden");
     inputDistance.focus();
   }
@@ -326,14 +337,22 @@ class App {
     inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
   }
 
+  _controlformSubmit(e){
+    e.preventDefault();
+
+    if(formType === 'new')
+      this._newWorkout();
+    else if(formType === 'update')
+      this._updateWorkout();
+  }
+
   // this function make a new wrokout based on user inputs.
-  _newWorkout(e) {
+  _newWorkout() {
     // these two functionsl checking the conditions of input first.
     const validInputs = (...inputs) =>
       inputs.every((inp) => Number.isFinite(inp));
     const allPositive = (...inputs) => inputs.every((inp) => inp > 0);
 
-    e.preventDefault();
 
     // Get the data from the form
     const type = inputType.value;
@@ -388,8 +407,89 @@ class App {
     this._setLocalStorage();
   }
 
+  _updateWorkout(){
+
+    // Get the data from the form
+    const type = inputType.value;
+    const distance = +inputDistance.value; //convert to number
+    const duration = +inputDuration.value; //convert to number
+
+    let workout;
+    this.#workout.map((w) =>{
+      if(w.id === itemID)
+        workout =w;
+    });
+
+    // If workout running, create running object
+    if (type === "running") 
+    {
+      workout.cadence = +inputCadence.value;
+      workout.pace = workout.duration / workout.distance; // cant use pace func
+    }
+    
+    else if(type === "cycling") 
+    {
+      workout.elevation = +inputElevation.value;
+      workout.speed =  workout.distance / (workout.duration / 60);// we cant use speed func
+    }
+
+      // Check if data is valid
+      if (
+        distance < 0  ||
+        duration < 0 ||
+        (
+          workout.cadence < 0
+          ||
+          workout.elevation < 0
+        )
+      )
+        return alert("Inputs have to be positive numbers!"); //gaurd caluse
+
+    workout.distance = distance;
+    workout.duration = duration;
+
+    // update workouts array with id
+    this.#workout.forEach((w) =>{
+      if(w.id === workout.id){
+        w.distance = workout.distance;
+        w.duration = workout.duration;
+        workout.type === 'running' ? w.cadence = workout.cadence : w.elevation = workout.elevation;
+        workout.type === 'running' ? w.pace = workout.pace : w.speed = workout.speed;
+      }
+    })
+
+    // update UI
+    this._updateUIWorkout(workout)
+
+    // effect the workout in UI
+    this._buildAttention(workout.id)
+
+    // Hide form + clear input fields
+    this._hideForm();
+
+    // Set local storage to all workouts
+    this._setLocalStorage();
+  }
+
+  _buildAttention(id){
+
+    //  UI
+    for (let child of containerWorkouts.children) {
+      if (child.classList.contains("workout") && child.dataset.id === id) {
+        child.style = 'border-bottom: 6px solid var(--color-brand--4); border-top: 6px solid var(--color-brand--4);';
+        setTimeout(() => {
+          child.style = 'border-bottom: none;';
+          child.style = 'border-top: none;';
+        }, 3500);
+      }
+    }
+
+    
+  }
+
   // this function makes new popUp in the map based on workout data.
   _renderWorkoutMarker(workout) {
+    console.log(workout.coords);
     L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
@@ -515,6 +615,7 @@ class App {
     // Event Delegation
     const workoutEl = e.target.closest(".workout");
     const deleteIcon = e.target.closest(".delete-icon");
+    const editIcon = e.target.closest(".edit-icon");
     const deleteIconMap = e.target.closest(".delete-icon-map");
 
     // adjust the proper tect for the deletionWindow
@@ -523,9 +624,8 @@ class App {
     //e from map
     if (deleteIconMap) {
       itemID = deleteIconMap.dataset.id;
-      console.log('yes');
       deletionWindow.classList.remove('hidden');
-      this._boldSelectedWorkout(itemID)
+      this._boldSelectedWorkout(itemID, 'del')
       
       setTimeout(() => {
         deletionWindow.classList.add('hidden');
@@ -534,31 +634,74 @@ class App {
 
     //e from UI Form
     if (!workoutEl) return;
+    itemID = workoutEl.dataset.id;
 
     if (deleteIcon) {
-      itemID = workoutEl.dataset.id;
       deletionWindow.classList.remove('hidden');
-      this._boldSelectedWorkout(itemID)
+      this._boldSelectedWorkout(itemID, 'del')
       
       setTimeout(() => {
         deletionWindow.classList.add('hidden');
       }, 3500);
 
+    }else if(editIcon){
+    let workout;
+    this.#workout.map((w) =>{
+      if(w.id === itemID)
+        workout =w;
+    });
+    inputType.value = workout.type;
+    inputType.setAttribute('disabled','');
+    
+    inputDistance.value = workout.distance;
+    inputDuration.value = workout.duration; 
+    if(workout.type === 'running'){
+    inputElevation.closest(".form__row").classList.add("form__row--hidden");
+    inputCadence.closest(".form__row").classList.remove("form__row--hidden");
+    inputCadence.value = workout.cadence;}
+  else{
+    inputElevation.closest(".form__row").classList.remove("form__row--hidden");
+    inputCadence.closest(".form__row").classList.add("form__row--hidden");
+    inputElevation.value = workout.elevationGain;}
+
+      this._boldSelectedWorkout(itemID,'edt');
+      formType  = 'update';
+      this._showForm();
     } else
     this._moveToPopup(workoutEl);
   }
 
   //this func pointouts selected workout
-  _boldSelectedWorkout(id){
+  _boldSelectedWorkout(id, type){
     for (let child of containerWorkouts.children) {
       if (child.classList.contains("workout") && child.dataset.id === id) {
-        console.log();
+        if(type === 'del')
         child.style = 'border-bottom: 6px solid var(--color-brand--3);';
+      else if(type === 'edt')
+      child.style = 'border-bottom: 6px solid var(--color-brand--4);';
         setTimeout(() => {
           child.style = 'border-bottom: none;';
         }, 3500);
       }
     }
+  }
+
+  _updateUIWorkout(workout){
+
+     // update form UI
+    for (let child of containerWorkouts.children) {
+      if (child.classList.contains("workout") && child.dataset.id === workout.id) {
+        child.children[1].children[1].textContent = workout.duration;
+        child.children[2].children[1].textContent = workout.distance;
+
+        if(workout.type === 'running'){
+          child.children[4].children[1].textContent = workout.cadence;
+        }else{
+          child.children[4].children[1].textContent = workout.elevation;
+        }
+      }
+    }
+
   }
 
 // this big func does 2 proccess, with id
@@ -622,12 +765,37 @@ class App {
     if (!data) return;
 
     this.#workout = data;
+
+    // let workouts = JSON.parse(JSON.stringify(data));
+    // let newWorkout;
+
+    
+    // for (let work of workouts) {
+    //   const type = work.type;
+    //   const distance = work.distance;
+    //   const duration = work.duration;
+    //   const lat  = work.coords[0];
+    //   const lng  = work.coords[1];
+      
+    //   if(type === 'running'){
+    //     newWorkout = new Running([lat, lng], distance, duration, work.cadence);
+    //   }else{
+    //     newWorkout = new Cycling([lat, lng], distance, duration, work.elevation);
+    //   }
+    //   this.#workout.push(newWorkout);
+    // }
+
     this.#workout.forEach((work) => {
       this._renderWorkout(work);
 
       // map doesn't exist here,
       // this._renderWorkoutMarker(work);
     });
+    
+    // console.log(this.#workout);
+    // this.#workout[0].click()
+    // console.log(this.#workout[0].clicks);
+
   }
 
   reset() {
