@@ -22,6 +22,8 @@ let delAllWorkouts  = false; //control delelte all logic
 const sortIcon = document.querySelector(".sort-icon");
 const sortList = document.querySelector(".sort-list");
 
+const showAllW = document.querySelector('.show-all-workouts-icon');
+
 let formType = ''; //new, update.
 
 // any global variable in any script will be available in all scripts. TIP!!
@@ -103,6 +105,9 @@ class App {
   // it set the zoom value of the map at its initial time
   #mapZoomLevel = 14;
 
+  // all marker
+  #marker = []
+
   ////// end of the property field /////
 
   constructor() {
@@ -132,15 +137,14 @@ class App {
       }
       // delete all workouts
       else{
-        console.log('before: '+this.#workout);
         this.#workout.forEach((w, i) =>{
           let id = w.id;
           this._delWorkout_UI_Map(id);
           console.log('item: '+w);
         })
-        this.#workout = []
+        this.#workout = [];
+        this.#marker = [];
       }
-      console.log('after: '+this.#workout);
       this._setLocalStorage();
 
     deletionWindow.classList.add('hidden');
@@ -258,6 +262,10 @@ class App {
         })
       }
     });
+
+    showAllW.addEventListener('click', () => {
+      this._showAllWorkoutsMap()
+    });
   }
 
   // //////////////////////////////
@@ -300,8 +308,6 @@ class App {
 
     // map exists here,
     // if there was any workout in the localStorage, this code will shows it to the map
-    console.log(' render');
-    console.log(this.#workout);
     this.#workout.forEach((work) => {
       this._renderWorkoutMarker(work);
     });
@@ -489,8 +495,7 @@ class App {
 
   // this function makes new popUp in the map based on workout data.
   _renderWorkoutMarker(workout) {
-    console.log(workout.coords);
-    L.marker(workout.coords)
+    let marker = L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
         L.popup({
@@ -511,6 +516,8 @@ class App {
       `
       )
       .openPopup();
+
+      this.#marker.push(marker);
 
     // adding click event to last popup which is made recently!!
     popup = document.querySelectorAll(".leaflet-popup-content");
@@ -691,8 +698,8 @@ class App {
      // update form UI
     for (let child of containerWorkouts.children) {
       if (child.classList.contains("workout") && child.dataset.id === workout.id) {
-        child.children[1].children[1].textContent = workout.duration;
-        child.children[2].children[1].textContent = workout.distance;
+        child.children[1].children[1].textContent = workout.distance;
+        child.children[2].children[1].textContent = workout.duration;
 
         if(workout.type === 'running'){
           child.children[4].children[1].textContent = workout.cadence;
@@ -705,7 +712,7 @@ class App {
   }
 
 // this big func does 2 proccess, with id
-// 1. delete the workout from UI from
+// 1. delete the workout from UI form
 // 2. delete the workout from map
   _delWorkout_UI_Map(id) {
 
@@ -729,6 +736,16 @@ class App {
       }
       i++;
     }
+
+    // deleting marker from app
+    this.#marker.forEach((m, i) =>{
+      const Mid = m._popup._content.slice(184, 194); //marker id 184 and 194 are hard coded index of the id in the string.
+      
+      // delete the selected marker form the its app's array.
+      if( Mid=== id)
+      this.#marker.splice(i,1)
+    })
+
   }
 
   _workoutExist(){
@@ -796,6 +813,13 @@ class App {
     // this.#workout[0].click()
     // console.log(this.#workout[0].clicks);
 
+  }
+
+  // show all markers in the map.
+  _showAllWorkoutsMap(){
+    if(this.#marker.length === 0) return;
+    let group = new L.featureGroup(this.#marker);
+    this.#map.fitBounds(group.getBounds());
   }
 
   reset() {

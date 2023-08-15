@@ -330,7 +330,8 @@ body span[lang="en"]{
 }
 
 .delete-icon-all,
-.sort-icon{
+.sort-icon,
+.show-all-workouts-icon{
   width: 30px;
   height: 30px;
 
@@ -349,7 +350,13 @@ body span[lang="en"]{
   top: 110px;
 }
 
-.sort-icon:hover{
+.show-all-workouts-icon{
+  left: 150px;
+  top: 110px;
+}
+
+.sort-icon:hover,
+.show-all-workouts-icon:hover{
   color: var(--color-brand--4);
 }
 .sort-list{
@@ -378,7 +385,8 @@ body span[lang="en"]{
 }
 
 .delete-icon-all:hover,
-.sort-icon:hover{
+.sort-icon:hover,
+.show-all-workouts-icon:hover{
   transform: scale(1.2);
 }
 
@@ -387,7 +395,8 @@ body span[lang="en"]{
 .delete-icon:hover,
 .delete-icon-map:hover,
 .edit-icon:hover,
-.sort-list:hover{
+.sort-list:hover,
+.show-all-workouts-icon:hover{
   cursor: pointer;
 }
 
