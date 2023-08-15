@@ -406,3 +406,13 @@ body span[lang="en"]{
 
   scale: 1.1;
 }
+
+/* weather img on the workout div */
+.weather-img{
+  width: 44px;
+  height: 44px;
+
+  position: absolute;
+
+  right: 20px;
+}

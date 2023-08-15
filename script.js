@@ -26,6 +26,8 @@ const showAllW = document.querySelector('.show-all-workouts-icon');
 
 let formType = ''; //new, update.
 
+const apiKey = '831b1ce55636e192a037abc54cd3ddce';
+
 // any global variable in any script will be available in all scripts. TIP!!
 
 // parent class for all type of workouts.
@@ -33,6 +35,8 @@ class Workourt {
   date = new Date();
   id = (Date.now() + "").slice(-10); //manual id, but usually we use a library for it.
   clicks = 0;
+
+  weatherImgUrl = ''; //this will fill by an api result.
 
   constructor(coords, distance, duration) {
     // this.date = ...
@@ -107,6 +111,8 @@ class App {
 
   // all marker
   #marker = []
+
+  #api = ''; // stores a complete api url for a request.
 
   ////// end of the property field /////
 
@@ -266,6 +272,8 @@ class App {
     showAllW.addEventListener('click', () => {
       this._showAllWorkoutsMap()
     });
+
+    
   }
 
   // //////////////////////////////
@@ -398,6 +406,8 @@ class App {
     // Add new object to workout array
     this.#workout.push(workout);
 
+
+    this._getcurWeather(workout.coords).then(() => {
     // Render workout on map as marker
     // display marker
     // in here this is the class itself.
@@ -406,11 +416,14 @@ class App {
     // Render workout on list
     this._renderWorkout(workout);
 
-    // Hide form + clear input fields
-    this._hideForm();
-
     // Set local storage to all workouts
     this._setLocalStorage();
+
+    })
+
+     // Hide form + clear input fields
+    this._hideForm();
+    
   }
 
   _updateWorkout(){
@@ -530,6 +543,7 @@ class App {
 
   // this method manipulate the DOM, and disply workout in the UI
   _renderWorkout(workout) {
+    console.log(workout.weatherImgUrl);
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}">
     <h2 class="workout__title">
@@ -539,6 +553,7 @@ class App {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="edit-icon">
     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
     </svg>
+    <img class='weather-img' src="${workout.weatherImgUrl}" alt="">
     </h2>
     
       <div class="workout__details">
@@ -587,6 +602,7 @@ class App {
 
     // this code adds the builded html content to the DOM.
     form.insertAdjacentHTML("afterend", html); // after form element in document.!!
+
   }
 
   // this func delete workout from app and required an id
@@ -818,10 +834,42 @@ class App {
   // show all markers in the map.
   _showAllWorkoutsMap(){
     if(this.#marker.length === 0) return;
+
     let group = new L.featureGroup(this.#marker);
     this.#map.fitBounds(group.getBounds());
   }
 
+  test(){
+    fetch(`
+    
+    `)
+    .then(r =>{
+      console.log(r);
+    }).then(d =>{
+      console.log(d);
+    })
+  }
+
+  async _getcurWeather(coord){
+    let data;
+    const lat = coord[0];
+    const lng = coord[1];
+
+    console.log(lat, lng);
+
+    this.#api = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}`;
+
+    await fetch(this.#api)
+    .then(response => response.json())
+    .then(d => {
+    data = d.weather[0];
+
+    // console.log(data[0].main);
+    console.log(data.description);
+    console.log(`http://openweathermap.org/img/w/${data.icon}.png`);
+    this.#workout[this.#workout.length - 1].weatherImgUrl =  `http://openweathermap.org/img/w/${data.icon}.png`;
+  })
+  }
   reset() {
     localStorage.removeItem("workouts");
     // a big object in js
