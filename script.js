@@ -27,6 +27,10 @@ const showAllW = document.querySelector('.show-all-workouts-icon');
 // this tooltip will use for all workout's weather's image.
 const tooltipWeather = document.querySelector('.weather-tooltip');
 
+// color gear
+const gearIcon = document.querySelector('.gear-icon');
+const gearColorLIst = document.querySelector('.color-list');
+
 
 let formType = ''; //new, update.
 
@@ -137,6 +141,28 @@ class App {
     // Event Delegation
     containerWorkouts.addEventListener("click", this._cEventOnWorkoutUI.bind(this));
 
+    // contorl gear list colors.
+    gearIcon.addEventListener('click', () =>{
+      gearColorLIst.classList.toggle("hidden");
+      gearIcon.classList.toggle("gear-iocn-animation");
+    })
+
+    gearColorLIst.addEventListener('click', (e) =>{
+      const colorOne = e.target.closest('.color-container-main-1')
+      const colorTwo = e.target.closest('.color-container-main-2')
+      const colorThree = e.target.closest('.color-container-main-3')
+      let color ='';
+
+      if(colorOne){
+        color = '--color-main--1'
+      }else if(colorTwo){
+        color = '--color-main--2'
+      }else if(colorThree){
+        color = '--color-main--3'
+      }
+
+      this._changeTheme(color)
+    })
 
     // add click event to deletionWidow
     deletionWindowBtnN.addEventListener('click', ()=>{
@@ -932,6 +958,24 @@ class App {
     }
   })
   })
+  }
+
+  // this func changes all website main element color
+  _changeTheme(color){
+    iconDeleteAllEl.style = `stroke: var(${color});`
+    sortIcon.style = `stroke: var(${color});`
+    showAllW.style = `stroke: var(${color});`
+    tooltipWeather.style = `background-color: var(${color});`
+
+    const workouts = containerWorkouts.querySelectorAll('.workout')
+    const mapworkouts = document.querySelectorAll('.leaflet-popup-content-wrapper')
+
+    workouts.forEach((c, i) => {
+
+        c.style = `background-color: var(${color});`;
+        mapworkouts[i].style = `background-color: var(${color});`;
+
+    })
   }
 
 

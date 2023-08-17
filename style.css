@@ -10,6 +10,11 @@
   --color-light--1: #aaa;
   --color-light--2: #ececec;
   --color-light--3: rgb(214, 222, 224);
+
+  /* these colors can change by user */
+  --color-main--1: #f08c00;
+  --color-main--2: #66a80f;
+  --color-main--3: #1c7ed6;
 }
 
 /* global Reset */
@@ -40,6 +45,7 @@ body {
   padding: 2.5rem;
 
   display: flex;
+  position: relative;
 }
 
 /* GENERAL */
@@ -467,4 +473,79 @@ body span[lang="en"]{
   margin-right: 10px ;
 
   /* position: absolute; */
+}
+
+.gear-container{
+  position: absolute;
+  top: 50vh;
+  left: 0;
+
+  padding: 3px;
+
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0px 0px 5px rgb(92, 92, 92);
+
+  z-index: 10;
+}
+
+.gear-icon{
+  width: 40px;
+  height: 40px;
+
+
+  stroke: black;
+  stroke-width: 2px;
+  
+}
+
+.gear-iocn-animation{
+  animation-name: loading-gear;
+  animation-duration: 0.8s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes loading-gear {
+  0%{ transform: rotate(360deg);}
+}
+
+.color-list{
+  padding: 5px;
+  background-color: white;
+
+  position: absolute;
+  top: 46%;
+  left: 46px;
+
+  border-radius: 8px;
+
+  z-index: 10;
+}
+
+.color-list div{
+  width: 80px;
+  height: 48px;
+
+  transition: all 0.3s;
+}
+
+.color-list div:hover{
+  transform: scale(0.8);
+
+  border-radius: 6px;
+}
+
+.color-container-main-1{
+  background-color: var(--color-main--1);
+}
+.color-container-main-2{
+  background-color: var(--color-main--2);
+}
+.color-container-main-3{
+  background-color: var(--color-main--3);
+}
+
+.color-container-main-default{
+  background-color: var(--color-dark--2);
 }
