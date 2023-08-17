@@ -24,6 +24,10 @@ const sortList = document.querySelector(".sort-list");
 
 const showAllW = document.querySelector('.show-all-workouts-icon');
 
+// this tooltip will use for all workout's weather's image.
+const tooltipWeather = document.querySelector('.weather-tooltip');
+
+
 let formType = ''; //new, update.
 
 const apiKey = '831b1ce55636e192a037abc54cd3ddce';
@@ -37,6 +41,7 @@ class Workourt {
   clicks = 0;
 
   weatherImgUrl = ''; //this will fill by an api result.
+  weatherText = ''; //stores a description from api.
 
   constructor(coords, distance, duration) {
     // this.date = ...
@@ -318,6 +323,7 @@ class App {
     // if there was any workout in the localStorage, this code will shows it to the map
     this.#workout.forEach((work) => {
       this._renderWorkoutMarker(work);
+      this._addHoverEventWorkout(); //add hover event to the workout's img.
     });
   }
 
@@ -406,20 +412,23 @@ class App {
     // Add new object to workout array
     this.#workout.push(workout);
 
-
+    // this asynchronous func gets the data from api about weather of each workout.
     this._getcurWeather(workout.coords).then(() => {
+
+      // Render workout on list
+      this._renderWorkout(workout);
+
+      this._addHoverEventWorkout()
+
+      // Set local storage to all workouts
+      this._setLocalStorage();
+
+    });
+
     // Render workout on map as marker
     // display marker
     // in here this is the class itself.
     this._renderWorkoutMarker(workout);
-
-    // Render workout on list
-    this._renderWorkout(workout);
-
-    // Set local storage to all workouts
-    this._setLocalStorage();
-
-    })
 
      // Hide form + clear input fields
     this._hideForm();
@@ -543,9 +552,8 @@ class App {
 
   // this method manipulate the DOM, and disply workout in the UI
   _renderWorkout(workout) {
-    console.log(workout.weatherImgUrl);
     let html = `
-    <li class="workout workout--${workout.type}" data-id="${workout.id}">
+    <li class="workout workout--${workout.type}" data-id="${workout.id}" data-event-hover="no">
     <h2 class="workout__title">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="delete-icon">
     <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -553,7 +561,7 @@ class App {
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="edit-icon">
     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
     </svg>
-    <img class='weather-img' src="${workout.weatherImgUrl}" alt="">
+    <img class='weather-img' src="${workout.weatherImgUrl}"  alt="">
     </h2>
     
       <div class="workout__details">
@@ -605,6 +613,37 @@ class App {
 
   }
 
+  // this func adds hover event to the workouts that doesn't have.
+  _addHoverEventWorkout(){
+    const allWorkouts = containerWorkouts.querySelectorAll('.workout');
+    // data-event-hover="y"
+    allWorkouts.forEach((w,i) =>{
+      if(w.dataset.eventHover === 'no'){
+        w.dataset.eventHover ='yes';
+        // console.log(w.getBoundingClientRect().x);
+        // console.log(w.getBoundingClientRect().y);
+        w.querySelector('.weather-img').addEventListener('mouseenter',() =>{
+          // scale up img
+          w.querySelector('.weather-img').style = 'transform: scale(1.4);';
+          this._showWeatherText(
+            w.getBoundingClientRect().x,
+            w.getBoundingClientRect().y,
+            w.dataset.id
+            
+            ) 
+        } )
+        w.querySelector('.weather-img').addEventListener('mouseleave',() =>{
+          // after 200 milie second tooltip will diseaper.
+          setTimeout(() => {
+            tooltipWeather.classList.add("hidden");
+            w.querySelector('.weather-img').style = 'transform: scale(1);';
+          }, 200);
+        } )
+        
+      }
+    })
+    
+  }
   // this func delete workout from app and required an id
   _deleteWorkout(id) {
     this.#workout.forEach((w, i) => {
@@ -727,6 +766,33 @@ class App {
 
   }
 
+  //functiion shows weather status text for each workout when 
+  // workout is hovered. 
+  _showWeatherText(x, y, id){
+    // x and y are coords of the Weather img.
+    // text is the weather text.
+    let text;
+    this.#workout.forEach((w) =>{
+      if(w.id === id)
+      text = w.weatherText
+    })
+
+    tooltipWeather.classList.remove("hidden");
+
+    tooltipWeather.style = `
+    top: ${y - 50}px; 
+    left: ${x + 320}px; 
+    `
+    tooltipWeather.querySelector('.weather-tooltop-text').textContent = text;
+  }
+
+  _findworkout(id){
+    this.#workout.forEach((w) =>{
+      console.log(w.weatherText
+        );
+    })
+  }
+
 // this big func does 2 proccess, with id
 // 1. delete the workout from UI form
 // 2. delete the workout from map
@@ -839,23 +905,11 @@ class App {
     this.#map.fitBounds(group.getBounds());
   }
 
-  test(){
-    fetch(`
-    
-    `)
-    .then(r =>{
-      console.log(r);
-    }).then(d =>{
-      console.log(d);
-    })
-  }
-
+  // this func gets data from api.
   async _getcurWeather(coord){
     let data;
     const lat = coord[0];
     const lng = coord[1];
-
-    console.log(lat, lng);
 
     this.#api = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}`;
 
@@ -864,12 +918,15 @@ class App {
     .then(d => {
     data = d.weather[0];
 
-    // console.log(data[0].main);
-    console.log(data.description);
-    console.log(`http://openweathermap.org/img/w/${data.icon}.png`);
+    console.log(data.main);
+    // console.log(data.description);
+
+    this.#workout[this.#workout.length - 1].weatherText = data.main; //set weather description to the property.
     this.#workout[this.#workout.length - 1].weatherImgUrl =  `http://openweathermap.org/img/w/${data.icon}.png`;
   })
   }
+
+
   reset() {
     localStorage.removeItem("workouts");
     // a big object in js
