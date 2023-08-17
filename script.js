@@ -43,6 +43,8 @@ class Workourt {
   weatherImgUrl = ''; //this will fill by an api result.
   weatherText = ''; //stores a description from api.
 
+  flagImg = ''; //link of the country svg.
+
   constructor(coords, distance, duration) {
     // this.date = ...
     // this.id = ...
@@ -203,7 +205,6 @@ class App {
       // console.log(workoutCopy);
 
       function sort(){
-        console.log(sortType);
         workoutCopy.forEach((w) => {
           sortType === 'distance' ? sortData.push(w.distance) : sortData.push(w.duration)
         })
@@ -217,7 +218,7 @@ class App {
             if(s === (sortType === 'distance' ? w.distance : w.duration)){
               sortDataId.push(w.id);
               workoutCopy.splice(i, 1);
-              return
+              
             }
             
           })
@@ -272,6 +273,9 @@ class App {
           this._renderWorkout(w)
         })
       }
+
+      // add hover event to the new workout
+      this._addHoverEventWorkout()
     });
 
     showAllW.addEventListener('click', () => {
@@ -555,6 +559,7 @@ class App {
     let html = `
     <li class="workout workout--${workout.type}" data-id="${workout.id}" data-event-hover="no">
     <h2 class="workout__title">
+    <img class="flag-img" src="${workout.flagImg}" alt="">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="delete-icon">
     <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
     </svg>${workout.description}
@@ -633,11 +638,9 @@ class App {
             ) 
         } )
         w.querySelector('.weather-img').addEventListener('mouseleave',() =>{
-          // after 200 milie second tooltip will diseaper.
-          setTimeout(() => {
             tooltipWeather.classList.add("hidden");
             w.querySelector('.weather-img').style = 'transform: scale(1);';
-          }, 200);
+
         } )
         
       }
@@ -786,13 +789,6 @@ class App {
     tooltipWeather.querySelector('.weather-tooltop-text').textContent = text;
   }
 
-  _findworkout(id){
-    this.#workout.forEach((w) =>{
-      console.log(w.weatherText
-        );
-    })
-  }
-
 // this big func does 2 proccess, with id
 // 1. delete the workout from UI form
 // 2. delete the workout from map
@@ -910,6 +906,7 @@ class App {
     let data;
     const lat = coord[0];
     const lng = coord[1];
+    let country = ''
 
     this.#api = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}`;
 
@@ -918,11 +915,22 @@ class App {
     .then(d => {
     data = d.weather[0];
 
-    console.log(data.main);
-    // console.log(data.description);
+    country = d.sys.country;
 
     this.#workout[this.#workout.length - 1].weatherText = data.main; //set weather description to the property.
     this.#workout[this.#workout.length - 1].weatherImgUrl =  `http://openweathermap.org/img/w/${data.icon}.png`;
+  })
+  
+  // this api gets data about country.
+  await fetch(`https://restcountries.com/v3.1/name/${country}`)
+  .then(response => response.json())
+    .then(d => {
+  d.forEach((c) =>{
+    if(c.altSpellings[0] === country){
+      this.#workout[this.#workout.length - 1].flagImg = c.flags['svg'];
+      // console.log(c.flags['svg']);
+    }
+  })
   })
   }
 

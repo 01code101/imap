@@ -442,8 +442,6 @@ body span[lang="en"]{
   
 }
 
-
-
 @keyframes weather-tooltip {
   0%{
     transform: rotate(20deg);
@@ -459,4 +457,14 @@ body span[lang="en"]{
 .weather-tooltop-text{
   font-size: 1.6rem;
   font-weight: bold;
+}
+
+.flag-img{
+  width: 36px;
+  height: 24px;
+
+  margin-left: 6px ;
+  margin-right: 10px ;
+
+  /* position: absolute; */
 }
